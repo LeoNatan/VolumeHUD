@@ -21,7 +21,8 @@ struct HUDView: View {
     let value: Float
     let isMuted: Bool
 
-    private let hudSize: CGFloat = 200
+	static
+    let hudSize: CGFloat = 210
     private let iconSize: CGFloat = 80
 
     private var iconName: String {
@@ -51,7 +52,8 @@ struct HUDView: View {
                     .frame(height: 56)
                 Image(systemName: iconName)
                     .font(.system(size: iconSize, weight: .medium))
-                    .foregroundStyle(.primary.opacity(0.7))
+                    .foregroundStyle(.secondary)
+					.shadow(radius: 2, x: 0.0, y: 0.0)
                     // SF Symbols has misalignment between speaker.slash.fill and speaker.fill
                     .offset(y: hudType == .volume && (isMuted || value <= 0.001) ? 2 : 0)
                 Spacer()
@@ -73,11 +75,12 @@ struct HUDView: View {
             }
             .frame(height: 80)
         }
-        .frame(width: hudSize, height: hudSize)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.regularMaterial),
-        )
+		.frame(width: Self.hudSize, height: Self.hudSize)
+//		.glassEffect(in: RoundedRectangle(cornerRadius: 32, style: .continuous))
+//        .background(
+//			RoundedRectangle(cornerRadius: 32, style: .continuous)
+//                .fill(.ultraThinMaterial),
+//        )
     }
 
     @ViewBuilder
@@ -88,7 +91,7 @@ struct HUDView: View {
         if hudType == .volume, isMuted {
             // Show all bars dimmed when muted
             Rectangle()
-                .fill(.primary.opacity(0.2))
+                .fill(.quaternary)
                 .frame(width: barWidth, height: barHeight)
         } else {
             // Each of the 16 bars represents 1/16th of the total range. Support 1/64th increments
@@ -99,7 +102,7 @@ struct HUDView: View {
             if value >= barEnd {
                 // Fully filled bar
                 Rectangle()
-                    .fill(.primary.opacity(0.7))
+					.fill(Color(nsColor: NSColor.secondaryLabelColor))
                     .frame(width: barWidth, height: barHeight)
             } else if value > barStart {
                 // Partially filled bar - calculate fill percentage
@@ -112,18 +115,18 @@ struct HUDView: View {
                 // Show partial fill with overlay
                 ZStack(alignment: .leading) {
                     Rectangle()
-                        .fill(.primary.opacity(0.2))
+                        .fill(.quaternary)
                         .frame(width: barWidth, height: barHeight)
 
                     Rectangle()
-                        .fill(.primary.opacity(0.7))
+                        .fill(Color(nsColor: NSColor.secondaryLabelColor))
                         .frame(width: fillWidth, height: barHeight)
                 }
                 .frame(width: barWidth, height: barHeight)
             } else {
                 // Empty bar
                 Rectangle()
-                    .fill(.primary.opacity(0.2))
+                    .fill(.quaternary)
                     .frame(width: barWidth, height: barHeight)
             }
         }
@@ -132,21 +135,21 @@ struct HUDView: View {
 
 #Preview("Volume") {
     ZStack {
-        Color.black.frame(width: 360, height: 380).ignoresSafeArea()
+        Color.red.frame(width: 360, height: 380).ignoresSafeArea()
         HUDView(hudType: .volume, value: 0.7, isMuted: false)
     }
 }
 
 #Preview("Mute") {
     ZStack {
-        Color.black.frame(width: 360, height: 380).ignoresSafeArea()
+        Color.red.frame(width: 360, height: 380).ignoresSafeArea()
         HUDView(hudType: .volume, value: 0.0, isMuted: true)
     }
 }
 
 #Preview("Brightness") {
     ZStack {
-        Color.black.frame(width: 360, height: 380).ignoresSafeArea()
+        Color.red.frame(width: 360, height: 380).ignoresSafeArea()
         HUDView(hudType: .brightness, value: 0.5, isMuted: false)
     }
 }

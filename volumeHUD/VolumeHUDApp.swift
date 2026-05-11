@@ -65,6 +65,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, @preconcurrency UNUserNotifi
     // MARK: - On Finish Launching
 
     func applicationDidFinishLaunching(_: Notification) {
+		UserDefaults.standard.register(defaults: [
+			"brightnessEnabled": true,
+			"volumeHUDFollowsMouse": false,
+			"useRelativePositioning": false
+		])
+
         // Skip full initialization if running in SwiftUI preview or test mode
         let isDevEnvironment = isRunningInDevEnvironment()
         if isDevEnvironment { return }
@@ -88,21 +94,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, @preconcurrency UNUserNotifi
         // Initialize login item manager, monitors, and HUD controller
         loginItemManager = LoginItemManager()
         volumeMonitor = VolumeMonitor(isPreviewMode: false)
-        #if !SANDBOX
-            brightnessMonitor = BrightnessMonitor(isPreviewMode: false)
-        #endif // !SANDBOX
+#if !SANDBOX
+		brightnessMonitor = BrightnessMonitor(isPreviewMode: false)
+#endif // !SANDBOX
         hudController = HUDController(isPreviewMode: false)
 
         // Set up bidirectional references
         volumeMonitor.hudController = hudController
-        #if !SANDBOX
-            brightnessMonitor.hudController = hudController
-        #endif // !SANDBOX
+#if !SANDBOX
+		brightnessMonitor.hudController = hudController
+#endif // !SANDBOX
 
-        #if !SANDBOX
-            // Request accessibility permissions if needed
-            requestAccessibilityPermissionsIfNeeded()
-        #endif // !SANDBOX
+#if !SANDBOX
+		// Request accessibility permissions if needed
+		requestAccessibilityPermissionsIfNeeded()
+#endif // !SANDBOX
 
         // Request notification permission and post "started" notification
         requestNotificationAuthorizationIfNeeded { [weak self] granted in
@@ -334,11 +340,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, @preconcurrency UNUserNotifi
         // Use NSPanel to remain in accessory mode
         let panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 600, height: 300),
-            styleMask: [.titled, .closable],
+			styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false,
         )
 
+		panel.titleVisibility = .hidden
+		panel.titlebarAppearsTransparent = true
+		panel.titlebarSeparatorStyle = .none
         panel.contentViewController = hostingController
         panel.title = "About volumeHUD"
 

@@ -13,20 +13,20 @@ struct AboutView: View {
     @State private var isShowingBuildNumber: Bool = false
 
     // Settings for app preferences
-    #if !SANDBOX
-        @AppStorage("brightnessEnabled") private var brightnessEnabled: Bool = false
-    #endif // !SANDBOX
-    @AppStorage("volumeHUDFollowsMouse") private var volumeHUDFollowsMouse: Bool = true
-    @AppStorage("useRelativePositioning") private var useRelativePositioning: Bool = true
+#if !SANDBOX
+	@AppStorage("brightnessEnabled") private var brightnessEnabled: Bool = true
+#endif // !SANDBOX
+    @AppStorage("volumeHUDFollowsMouse") private var volumeHUDFollowsMouse: Bool = false
+    @AppStorage("useRelativePositioning") private var useRelativePositioning: Bool = false
 
-    #if !SANDBOX
-        /// State to track if an update is available
-        @State private var isUpdateAvailable: Bool = false
+#if !SANDBOX
+	/// State to track if an update is available
+	@State private var isUpdateAvailable: Bool = false
 
-        // GitHub repository info
-        private let githubOwner = "dannystewart"
-        private let githubRepo = "volumeHUD"
-    #endif // !SANDBOX
+	// GitHub repository info
+	private let githubOwner = "dannystewart"
+	private let githubRepo = "volumeHUD"
+#endif // !SANDBOX
 
     /// Login item manager
     @Environment(\.loginItemManager) private var loginItemManager
@@ -78,9 +78,11 @@ struct AboutView: View {
                         .resizable()
                         .frame(width: 80, height: 80)
                 }
-                Text("volumeHUD")
+                Text("Volume HUD")
                     .font(.system(size: 24, weight: .medium))
-                Text("by Danny Stewart")
+                Text("by Danny Stewart\nmodifications by Léo Natan")
+					.multilineTextAlignment(.center)
+					.fixedSize(horizontal: false, vertical: true)
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
 
@@ -112,10 +114,10 @@ struct AboutView: View {
                 Spacer(minLength: 0)
 
                 Button(action: onQuit) {
-                    Text("Quit volumeHUD")
+                    Text("Quit Volume HUD")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.glassProminent)
                 .controlSize(.large)
                 .keyboardShortcut(.defaultAction)
             }
@@ -154,7 +156,7 @@ struct AboutView: View {
                             Spacer()
 
                             Toggle("", isOn: $brightnessEnabled)
-                                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+								.toggleStyle(.switch)
                                 .scaleEffect(0.8)
                                 .onChange(of: brightnessEnabled) { oldValue, newValue in
                                     logger.debug("Brightness setting changed from \(oldValue) to \(newValue).")
@@ -194,7 +196,7 @@ struct AboutView: View {
                         Spacer()
 
                         Toggle("", isOn: $volumeHUDFollowsMouse)
-                            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+							.toggleStyle(.switch)
                             .scaleEffect(0.8)
                             .onChange(of: volumeHUDFollowsMouse) { oldValue, newValue in
                                 logger.debug("Volume HUD display setting changed from \(oldValue) to \(newValue).")
@@ -232,7 +234,7 @@ struct AboutView: View {
                         Spacer()
 
                         Toggle("", isOn: $useRelativePositioning)
-                            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+							.toggleStyle(.switch)
                             .scaleEffect(0.8)
                             .onChange(of: useRelativePositioning) { oldValue, newValue in
                                 logger.debug("Relative positioning setting changed from \(oldValue) to \(newValue).")
@@ -274,20 +276,20 @@ struct AboutView: View {
         // MARK: - Update Check
 
         private func checkForUpdates() {
-            Task {
-                do {
-                    let latestRelease = try await fetchLatestRelease()
-
-                    // Compare versions
-                    if isNewerVersion(latestRelease, than: appVersion) {
-                        await MainActor.run {
-                            isUpdateAvailable = true
-                        }
-                    }
-                } catch { // Silently fail if the update check fails
-                    logger.error("Update check failed: \(error)")
-                }
-            }
+//            Task {
+//                do {
+//                    let latestRelease = try await fetchLatestRelease()
+//
+//                    // Compare versions
+//                    if isNewerVersion(latestRelease, than: appVersion) {
+//                        await MainActor.run {
+//                            isUpdateAvailable = true
+//                        }
+//                    }
+//                } catch { // Silently fail if the update check fails
+//                    logger.error("Update check failed: \(error)")
+//                }
+//            }
         }
 
         private func fetchLatestRelease() async throws -> String {
@@ -391,7 +393,7 @@ private struct LoginItemSetting: View {
                     get: { loginItemManager.isEnabled },
                     set: { loginItemManager.setEnabled($0) },
                 ))
-                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+				.toggleStyle(.switch)
                 .scaleEffect(0.8)
             }
         }

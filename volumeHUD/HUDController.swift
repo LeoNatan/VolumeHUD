@@ -298,7 +298,19 @@ class HUDController: ObservableObject {
             // Remove old content view if it exists
             if let oldView = window.contentView { oldView.removeFromSuperview() }
 
-            window.contentView = newHostingView
+			let glassView = NSGlassEffectView(frame: newHostingView.frame)
+
+			glassView.style = .regular
+			glassView.cornerRadius = 32
+			glassView.contentView = newHostingView
+//			glassView.setValue(8, forKey: "_variant")
+//			glassView.setValue(1, forKey: "_scrimState")
+			glassView.setValue(0, forKey: "_subduedState")
+//			glassView.setValue(true, forKey: "_useReducedShadowRadius")
+//			glassView.setValue(0, forKey: "_adaptiveAppearance")
+//			glassView.setValue(1, forKey: "_contentLensing")
+
+            window.contentView = glassView
             hostingView = newHostingView
 
             // Update position based on HUD type
@@ -326,7 +338,7 @@ class HUDController: ObservableObject {
     @MainActor
     private func scheduleHideTimer() {
         hideTimer?.invalidate()
-        hideTimer = Timer.scheduledTimer(withTimeInterval: 1.1, repeats: false) { [weak self] _ in
+		hideTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { [weak self] _ in
             Task { @MainActor in
                 self?.hideHUD()
             }
@@ -337,8 +349,8 @@ class HUDController: ObservableObject {
     private func createHUDWindow() {
         // Create the window with special properties for overlay
         hudWindow = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 200, height: 200),
-            styleMask: [.borderless],
+			contentRect: NSRect(x: 0, y: 0, width: HUDView.hudSize, height: HUDView.hudSize),
+			styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
             defer: false,
         )
@@ -350,14 +362,14 @@ class HUDController: ObservableObject {
 
         // Configure window properties for overlay behavior. Use `.statusBar` level to appear above
         // normal windows but not block Exposé/Show Desktop.
-        window.level = .statusBar
+        window.level = .mainMenu
         window.isOpaque = false
         window.backgroundColor = .clear
         window.hasShadow = false
         window.ignoresMouseEvents = true
         // Avoid .stationary: it can interact badly with Mission Control / Show Desktop.
         // `canJoinAllSpaces` is sufficient for cross-space visibility.
-        window.collectionBehavior = [.canJoinAllSpaces, .ignoresCycle, .transient]
+		window.collectionBehavior = [.ignoresCycle, .stationary, .canJoinAllSpaces, .fullScreenAuxiliary]
 
         // Set the initial position
         updateWindowPosition()
@@ -374,17 +386,12 @@ class HUDController: ObservableObject {
     private func hideHUD() {
         guard let window = hudWindow else { return }
 
-        // Animate fade-out before hiding
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.11
-            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            window.animator().alphaValue = 0.0
-        } completionHandler: { [weak self] in
-            Task { @MainActor [weak self] in
-                window.orderOut(nil)
-                window.alphaValue = 1.0 // Reset for next show
-                self?.isShowing = false
-            }
-        }
+		NSAnimationContext.animate(.spring(duration: 0.2)) {
+			window.animator().alphaValue = 0.0
+		} completion: { [weak self] in
+			window.orderOut(nil)
+			window.alphaValue = 1.0 // Reset for next show
+			self?.isShowing = false
+		}
     }
 }
